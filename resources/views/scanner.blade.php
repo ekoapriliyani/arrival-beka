@@ -54,41 +54,51 @@
         .history-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
         .history-info span { color: #666; font-size: 12px; }
         .history-count { color: #007bff !important; font-weight: bold; }
+        .history-title { display: flex; align-items: center; gap: 6px; }
+        .history-line { display: flex; align-items: center; gap: 5px; }
         .history-actions { display: flex; gap: 6px; flex: none; }
         .history-actions button { flex: none; padding: 6px 10px; font-size: 12px; }
         .btn-open { background-color: #007bff; color: white; }
         .btn-delete { background-color: #dc3545; color: white; }
         .history-empty { color: #888; font-size: 13px; list-style: none; }
         .hint { color: #888; font-size: 12px; margin-top: 4px; }
+
+        /* Ikon SVG inline (Heroicons) */
+        .ico { width: 1.05em; height: 1.05em; vertical-align: -0.15em; flex: none; }
+        .btn-ico { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .ico-title { display: flex; align-items: center; gap: 7px; }
+        .lbl { display: flex; align-items: center; gap: 6px; }
+        .error-head { display: flex; align-items: center; gap: 6px; font-weight: bold; margin-bottom: 6px; }
+        .topbar span, .topbar a { display: inline-flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>QR Tag Scanner Wire Rod</h2>
+    <h2 class="ico-title"><x-icon name="qr-code" /> QR Tag Scanner Wire Rod</h2>
 
     <div class="topbar">
-        <span>Supplier menentukan delimiter &amp; urutan barcode.</span>
-        <a href="{{ route('suppliers.index') }}">Kelola Supplier &rarr;</a>
+        <span><x-icon name="information-circle" /> Supplier menentukan delimiter &amp; urutan barcode.</span>
+        <a href="{{ route('suppliers.index') }}"><x-icon name="cog-6-tooth" /> Kelola Supplier &rarr;</a>
     </div>
 
     {{-- Form header: wajib diisi sebelum Mulai Scan bisa dijalankan --}}
     <section id="headerForm"@if($activeHeader) hidden @endif>
-        <h3>Header Arrival</h3>
+        <h3 class="ico-title"><x-icon name="clipboard-document-list" /> Header Arrival</h3>
         <form id="poForm" novalidate>
-            <label>Purchase Order
+            <label><span class="lbl"><x-icon name="document-text" /> Purchase Order</span>
                 <input type="text" name="po_number" maxlength="50" placeholder="PO-00123" required>
             </label>
-            <label>Tanggal
+            <label><span class="lbl"><x-icon name="calendar" /> Tanggal</span>
                 <input type="date" name="tanggal" required>
             </label>
-            <label>Item
+            <label><span class="lbl"><x-icon name="cube" /> Item</span>
                 <input type="text" name="item" maxlength="100" placeholder="Wire Rod" required>
             </label>
-            <label>Description
+            <label><span class="lbl"><x-icon name="pencil-square" /> Description</span>
                 <textarea name="description" maxlength="255" placeholder="Opsional"></textarea>
             </label>
-            <label>Supplier
+            <label><span class="lbl"><x-icon name="building-storefront" /> Supplier</span>
                 <select name="supplier_id" required {{ $suppliers->isEmpty() ? 'disabled' : '' }}>
                     <option value="">{{ $suppliers->isEmpty() ? 'Belum ada supplier' : 'Pilih supplier' }}</option>
                     @foreach($suppliers as $supplier)
@@ -97,57 +107,57 @@
                 </select>
             </label>
             @if($suppliers->isEmpty())
-                <p class="hint">Belum ada supplier. Tambahkan dulu di halaman
+                <p class="hint"><x-icon name="information-circle" /> Belum ada supplier. Tambahkan dulu di halaman
                     <a href="{{ route('suppliers.index') }}">Kelola Supplier</a>.
                 </p>
             @endif
 
             <div id="formErrors" class="form-errors" hidden></div>
 
-            <button type="submit" class="btn-save">Simpan Header</button>
+            <button type="submit" class="btn-save btn-ico"><x-icon name="check" /> Simpan Header</button>
             <p class="hint">Mulai Scan terbuka setelah header tersimpan.</p>
         </form>
     </section>
 
     {{-- Ringkasan header aktif --}}
     <section id="headerSummary" class="summary"@if(!$activeHeader) hidden @endif>
-        <h3>PO Aktif</h3>
+        <h3 class="ico-title"><x-icon name="check-badge" /> PO Aktif</h3>
         <dl class="summary-grid">
-            <dt>Purchase Order</dt><dd id="sumPo">{{ $activeHeader?->po_number }}</dd>
-            <dt>Tanggal</dt><dd id="sumTanggal">{{ $activeHeader?->tanggal?->format('Y-m-d') }}</dd>
-            <dt>Item</dt><dd id="sumItem">{{ $activeHeader?->item }}</dd>
-            <dt>Description</dt><dd id="sumDescription">{{ $activeHeader?->description ?: '-' }}</dd>
-            <dt>Supplier</dt><dd id="sumSupplier">{{ $activeHeader?->supplier?->label() ?? '-' }}</dd>
+            <dt><x-icon name="document-text" /> Purchase Order</dt><dd id="sumPo">{{ $activeHeader?->po_number }}</dd>
+            <dt><x-icon name="calendar" /> Tanggal</dt><dd id="sumTanggal">{{ $activeHeader?->tanggal?->format('Y-m-d') }}</dd>
+            <dt><x-icon name="cube" /> Item</dt><dd id="sumItem">{{ $activeHeader?->item }}</dd>
+            <dt><x-icon name="pencil-square" /> Description</dt><dd id="sumDescription">{{ $activeHeader?->description ?: '-' }}</dd>
+            <dt><x-icon name="building-storefront" /> Supplier</dt><dd id="sumSupplier">{{ $activeHeader?->supplier?->label() ?? '-' }}</dd>
         </dl>
-        <button type="button" class="btn-new" onclick="newPo()">PO Baru</button>
+        <button type="button" class="btn-new btn-ico" onclick="newPo()"><x-icon name="plus" /> PO Baru</button>
     </section>
 
     <video id="preview"></video>
 
     <div class="btn-group">
-        <button class="btn-scan" id="btnScan" onclick="toggleScanner()"@if(!$activeHeader) disabled @endif>Mulai Scan</button>
-        <button class="btn-manual" id="btnManual" onclick="openManualForm()"@if(!$activeHeader) disabled @endif>Input Manual</button>
-        <button class="btn-export" onclick="exportToExcel()">Export Excel</button>
-        <button class="btn-clear" onclick="clearData()">Clear</button>
+        <button class="btn-scan btn-ico" id="btnScan" onclick="toggleScanner()"@if(!$activeHeader) disabled @endif><x-icon name="camera" /> Mulai Scan</button>
+        <button class="btn-manual btn-ico" id="btnManual" onclick="openManualForm()"@if(!$activeHeader) disabled @endif><x-icon name="pencil-square" /> Input Manual</button>
+        <button class="btn-export btn-ico" onclick="exportToExcel()"><x-icon name="arrow-down-tray" /> Export Excel</button>
+        <button class="btn-clear btn-ico" onclick="clearData()"><x-icon name="trash" /> Clear</button>
     </div>
 
-    <h3>Data Scanned (<span id="count">0</span>)</h3>
+    <h3 class="ico-title"><x-icon name="table-cells" /> <span>Data Scanned (<span id="count">0</span>)</span></h3>
     <table id="dataTable">
         <thead>
             <tr>
-                <th>No</th>
-                <th>Heat No</th>
-                <th>Coil No</th>
-                <th>Weight (MT)</th>
-                <th>Grade</th>
-                <th>Size</th>
-                <th>Sumber</th>
+                <th><span class="lbl"><x-icon name="hashtag" /> No</span></th>
+                <th><span class="lbl"><x-icon name="fire" /> Heat No</span></th>
+                <th><span class="lbl"><x-icon name="circle-stack" /> Coil No</span></th>
+                <th><span class="lbl"><x-icon name="scale" /> Weight (MT)</span></th>
+                <th><span class="lbl"><x-icon name="academic-cap" /> Grade</span></th>
+                <th><span class="lbl"><x-icon name="squares-2x2" /> Size</span></th>
+                <th><span class="lbl"><x-icon name="list-bullet" /> Sumber</span></th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <h3 style="margin-top: 20px;">Riwayat PO</h3>
+    <h3 class="ico-title" style="margin-top: 20px;"><x-icon name="clock" /> Riwayat PO</h3>
     <ul id="poHistory"></ul>
 </div>
 
@@ -155,39 +165,39 @@
 <div id="manualModal" class="modal-overlay" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="manualTitle">
         <div class="modal-head">
-            <h3 id="manualTitle">Input Manual</h3>
-            <button type="button" class="modal-close" onclick="closeManualForm()" aria-label="Tutup">&times;</button>
+            <h3 id="manualTitle" class="ico-title"><x-icon name="pencil-square" /> <span>Input Manual</span></h3>
+            <button type="button" class="modal-close" onclick="closeManualForm()" aria-label="Tutup"><x-icon name="x-mark" /></button>
         </div>
         <p class="hint">Isi data dari label fisik bila QR code tidak terbaca.</p>
 
         <form id="manualForm" novalidate>
-            <label>Manufacturer
+            <label><span class="lbl"><x-icon name="building-office-2" /> Manufacturer</span>
                 <input type="text" name="manufacturer" maxlength="100" placeholder="Nippon Steel" required>
             </label>
-            <label>Grade
+            <label><span class="lbl"><x-icon name="academic-cap" /> Grade</span>
                 <input type="text" name="grade" maxlength="50" placeholder="SWRH82B" required>
             </label>
-            <label>Heat No
+            <label><span class="lbl"><x-icon name="fire" /> Heat No</span>
                 <input type="text" name="heat_no" maxlength="100" placeholder="12345678" required>
             </label>
-            <label>Coil No
+            <label><span class="lbl"><x-icon name="circle-stack" /> Coil No</span>
                 <input type="text" name="coil_no" maxlength="100" placeholder="87654321" required>
             </label>
-            <label>Weight (MT)
+            <label><span class="lbl"><x-icon name="scale" /> Weight (MT)</span>
                 <input type="number" name="weight" min="0" step="any" inputmode="decimal" placeholder="2.369" required>
             </label>
-            <label>Size (mm)
+            <label><span class="lbl"><x-icon name="squares-2x2" /> Size (mm)</span>
                 <input type="number" name="size" min="0" step="any" inputmode="decimal" placeholder="5.5" required>
             </label>
-            <label>Tanggal QR
+            <label><span class="lbl"><x-icon name="calendar" /> Tanggal QR</span>
                 <input type="date" name="qr_date">
             </label>
 
             <div id="manualErrors" class="form-errors" hidden></div>
 
             <div class="modal-actions">
-                <button type="button" class="btn-cancel" onclick="closeManualForm()">Batal</button>
-                <button type="submit" class="btn-save">Simpan</button>
+                <button type="button" class="btn-cancel btn-ico" onclick="closeManualForm()"><x-icon name="x-mark" /> Batal</button>
+                <button type="submit" class="btn-save btn-ico"><x-icon name="check" /> Simpan</button>
             </div>
         </form>
     </div>
@@ -200,11 +210,38 @@
 <script>
 const ARRIVALS_URL = @json(route('arrivals.index'));
 const CSRF_TOKEN = @json(csrf_token());
+const ICONS = @json(\App\View\Components\Icon::map());
 const JSON_HEADERS = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     'X-CSRF-TOKEN': CSRF_TOKEN
 };
+
+// Ikon SVG inline (Heroicons) untuk elemen yang dibuat lewat JavaScript
+function iconSvg(name) {
+    const markup = ICONS[name];
+
+    if (!markup) {
+        return '';
+    }
+
+    return '<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none"'
+        + ' stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"'
+        + ' aria-hidden="true" focusable="false">' + markup + '</svg>';
+}
+
+// Judul peringatan isian yang belum valid
+function appendErrorHead(box, message) {
+    const head = document.createElement('div');
+    head.className = 'error-head';
+    head.innerHTML = iconSvg('exclamation-circle');
+
+    const label = document.createElement('span');
+    label.innerText = message;
+
+    head.appendChild(label);
+    box.appendChild(head);
+}
 
 let headers = @json($headers);
 let activeHeader = @json($activeHeader);
@@ -273,7 +310,7 @@ function startScanner() {
     });
 
     isScanning = true;
-    document.getElementById('btnScan').innerText = "Stop Scan";
+    document.getElementById('btnScan').innerHTML = iconSvg('stop') + ' Stop Scan';
 }
 
 function stopScanner() {
@@ -282,7 +319,7 @@ function stopScanner() {
     }
     document.getElementById('preview').style.display = 'none';
     isScanning = false;
-    document.getElementById('btnScan').innerText = "Mulai Scan";
+    document.getElementById('btnScan').innerHTML = iconSvg('camera') + ' Mulai Scan';
 }
 
 /* ================= Header PO ================= */
@@ -328,6 +365,7 @@ function showSummary() {
 function showFormErrors(errors) {
     const box = document.getElementById('formErrors');
     box.innerHTML = '';
+    appendErrorHead(box, 'Periksa isian berikut');
     const list = document.createElement('ul');
 
     Object.values(errors).flat().forEach(message => {
@@ -471,7 +509,7 @@ function renderHistory() {
     if (headers.length === 0) {
         const empty = document.createElement('li');
         empty.className = 'history-empty';
-        empty.innerText = 'Belum ada PO tersimpan.';
+        empty.innerHTML = iconSvg('inbox') + ' Belum ada PO tersimpan.';
         list.appendChild(empty);
         return;
     }
@@ -484,12 +522,19 @@ function renderHistory() {
         info.className = 'history-info';
 
         const title = document.createElement('strong');
-        title.innerText = header.po_number;
+        title.className = 'history-title';
+        title.innerHTML = iconSvg('document-text');
+        title.appendChild(document.createTextNode(header.po_number));
         info.appendChild(title);
 
-        [header.tanggal, (header.item || '') + ' · ' + formatSupplier(header.supplier)].forEach(text => {
+        [
+            [header.tanggal, 'calendar'],
+            [(header.item || '') + ' · ' + formatSupplier(header.supplier), 'cube']
+        ].forEach(([text, iconName]) => {
             const line = document.createElement('span');
-            line.innerText = text;
+            line.className = 'history-line';
+            line.innerHTML = iconSvg(iconName);
+            line.appendChild(document.createTextNode(text));
             info.appendChild(line);
         });
 
@@ -503,14 +548,14 @@ function renderHistory() {
 
         const openButton = document.createElement('button');
         openButton.type = 'button';
-        openButton.className = 'btn-open';
-        openButton.innerText = 'Buka';
+        openButton.className = 'btn-open btn-ico';
+        openButton.innerHTML = iconSvg('folder-open') + ' Buka';
         openButton.onclick = () => openHeader(header.id);
 
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
-        deleteButton.className = 'btn-delete';
-        deleteButton.innerText = 'Hapus';
+        deleteButton.className = 'btn-delete btn-ico';
+        deleteButton.innerHTML = iconSvg('trash') + ' Hapus';
         deleteButton.onclick = () => deleteHeader(header.id);
 
         actions.appendChild(openButton);
@@ -589,6 +634,14 @@ function isDateOnly(value) {
     return !isNaN(Date.parse(value));
 }
 
+// Tanggal hari ini (timezone lokal) dalam format YYYY-MM-DD
+function todayDateOnly() {
+    const today = new Date();
+    const pad = value => String(value).padStart(2, '0');
+
+    return today.getFullYear() + '-' + pad(today.getMonth() + 1) + '-' + pad(today.getDate());
+}
+
 /* ================= Input Manual ================= */
 
 // Cadangan input bila QR code tidak terbaca
@@ -611,6 +664,9 @@ function openManualForm() {
     const manufacturerValue = activeHeader.supplier ? activeHeader.supplier.name : '';
     form.manufacturer.value = manufacturerValue;
 
+    // Tanggal QR diisi otomatis hari ini
+    form.qr_date.value = todayDateOnly();
+
     document.getElementById('manualModal').hidden = false;
 
     // Fokus ke field berikutnya bila manufacturer sudah terisi otomatis
@@ -629,6 +685,7 @@ function closeManualForm() {
 function showManualErrors(errors) {
     const box = document.getElementById('manualErrors');
     box.innerHTML = '';
+    appendErrorHead(box, 'Periksa isian berikut');
 
     const list = document.createElement('ul');
 

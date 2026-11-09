@@ -15,8 +15,8 @@
         button:disabled { background-color: #adb5bd; color: #f4f6f9; cursor: not-allowed; }
         .btn-save { background-color: #007bff; color: white; width: 100%; }
         .btn-cancel { background-color: #6c757d; color: white; }
-        .btn-edit { background-color: #fd7e14; color: white; padding: 6px 10px; font-size: 12px; }
-        .btn-delete { background-color: #dc3545; color: white; padding: 6px 10px; font-size: 12px; }
+        .btn-edit { background-color: #fd7e14; color: white; padding: 6px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
+        .btn-delete { background-color: #dc3545; color: white; padding: 6px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }
         th { background-color: #f2f2f2; }
@@ -37,35 +37,43 @@
         .empty { color: #888; font-size: 13px; }
         code { font-family: Consolas, monospace; font-size: 12px; word-break: break-all; }
         .actions { display: flex; gap: 6px; white-space: nowrap; }
-        .count-badge { background: #eef5ff; color: #007bff; border-radius: 10px; padding: 2px 8px; font-weight: bold; font-size: 12px; }
+        .count-badge { background: #eef5ff; color: #007bff; border-radius: 10px; padding: 3px 8px; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
+
+        /* Ikon SVG inline (Heroicons) */
+        .ico { width: 1.05em; height: 1.05em; vertical-align: -0.15em; flex: none; }
+        .btn-ico { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .ico-title { display: flex; align-items: center; gap: 7px; }
+        .lbl { display: flex; align-items: center; gap: 6px; }
+        .error-head { display: flex; align-items: center; gap: 6px; font-weight: bold; margin-bottom: 6px; }
+        .topbar span, .topbar a { display: inline-flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Kelola Supplier</h2>
+    <h2 class="ico-title"><x-icon name="building-storefront" /> Kelola Supplier</h2>
 
     <div class="topbar">
-        <span>Delimiter &amp; urutan barcode dipakai tiap kali PO supplier ini discan.</span>
-        <a href="{{ route('scanner.index') }}">&larr; Kembali ke Scanner</a>
+        <span><x-icon name="information-circle" /> Delimiter &amp; urutan barcode dipakai tiap kali PO supplier ini discan.</span>
+        <a href="{{ route('scanner.index') }}"><x-icon name="arrow-left" /> Kembali ke Scanner</a>
     </div>
 
     <section>
-        <h3 id="formTitle">Tambah Supplier</h3>
+        <h3 id="formTitle" class="ico-title"><x-icon name="plus" /> <span>Tambah Supplier</span></h3>
         <form id="supplierForm" novalidate>
-            <label>Nama Supplier
+            <label><span class="lbl"><x-icon name="building-storefront" /> Nama Supplier</span>
                 <input type="text" name="name" maxlength="100" placeholder="PT Sinar Baja" required>
             </label>
-            <label>Kode
+            <label><span class="lbl"><x-icon name="tag" /> Kode</span>
                 <input type="text" name="code" maxlength="20" placeholder="Opsional, mis. SB">
             </label>
-            <label>Delimiter
+            <label><span class="lbl"><x-icon name="code-bracket" /> Delimiter</span>
                 <input type="text" name="delimiter" maxlength="10" value="-" required>
             </label>
             <div class="chip-row" id="delimiterQuick"></div>
             <p class="hint">Karakter pemisah antar bagian di dalam barcode supplier ini.</p>
 
-            <label style="margin-top: 14px;">Format Barcode
+            <label style="margin-top: 14px;"><span class="lbl"><x-icon name="qr-code" /> Format Barcode</span>
                 <input type="text" name="barcode_format" id="barcode_format" maxlength="255" placeholder="manufacturer,grade,heat_no,coil_no,weight,size,qr_date" required>
             </label>
             <div class="chip-row" id="fieldChips"></div>
@@ -77,38 +85,82 @@
             <div id="formErrors" class="form-errors" hidden></div>
 
             <div style="display:flex; gap:10px; margin-top: 14px;">
-                <button type="button" class="btn-cancel" id="btnCancel" hidden onclick="resetForm()" style="flex:1;">Batal</button>
-                <button type="submit" class="btn-save" id="btnSubmit" style="flex:2;">Simpan Supplier</button>
+                <button type="button" class="btn-cancel btn-ico" id="btnCancel" hidden onclick="resetForm()" style="flex:1;"><x-icon name="x-mark" /> Batal</button>
+                <button type="submit" class="btn-save btn-ico" id="btnSubmit" style="flex:2;"><x-icon name="check" /> <span>Simpan Supplier</span></button>
             </div>
         </form>
     </section>
 
-    <h3 style="margin-top: 22px;">Daftar Supplier (<span id="count">0</span>)</h3>
+    <h3 class="ico-title" style="margin-top: 22px;"><x-icon name="clipboard-document-list" /> <span>Daftar Supplier (<span id="count">0</span>)</span></h3>
     <table id="supplierTable">
         <thead>
             <tr>
-                <th>Nama</th>
-                <th>Kode</th>
-                <th>Delimiter</th>
-                <th>Format Barcode</th>
-                <th>Arrival</th>
-                <th>Aksi</th>
+                <th><span class="lbl"><x-icon name="building-storefront" /> Nama</span></th>
+                <th><span class="lbl"><x-icon name="tag" /> Kode</span></th>
+                <th><span class="lbl"><x-icon name="code-bracket" /> Delimiter</span></th>
+                <th><span class="lbl"><x-icon name="qr-code" /> Format Barcode</span></th>
+                <th><span class="lbl"><x-icon name="clipboard-document-list" /> Arrival</span></th>
+                <th><span class="lbl"><x-icon name="wrench" /> Aksi</span></th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
-    <p id="emptyState" class="empty" hidden>Belum ada supplier. Tambahkan lewat form di atas.</p>
+    <p id="emptyState" class="empty" hidden><x-icon name="inbox" /> Belum ada supplier. Tambahkan lewat form di atas.</p>
 </div>
 
 <script>
 const SUPPLIERS_URL = @json(route('suppliers.index'));
 const CSRF_TOKEN = @json(csrf_token());
+const ICONS = @json(\App\View\Components\Icon::map());
 const JSON_HEADERS = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     'X-CSRF-TOKEN': CSRF_TOKEN
 };
 const FIELDS = @json($fields);
+
+// Ikon SVG inline (Heroicons) untuk elemen yang dibuat lewat JavaScript
+function iconSvg(name) {
+    const markup = ICONS[name];
+
+    if (!markup) {
+        return '';
+    }
+
+    return '<svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none"'
+        + ' stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"'
+        + ' aria-hidden="true" focusable="false">' + markup + '</svg>';
+}
+
+// Ganti judul form beserta ikonnya
+function setFormTitle(message, iconName) {
+    const title = document.getElementById('formTitle');
+    title.innerHTML = iconSvg(iconName) + '<span></span>';
+    title.querySelector('span').innerText = message;
+}
+
+// Ganti label tombol sambil ikonnya tetap ada
+function setButtonLabel(button, message, iconName) {
+    button.innerHTML = iconSvg(iconName);
+
+    const label = document.createElement('span');
+    label.innerText = message;
+
+    button.appendChild(label);
+}
+
+// Judul peringatan isian yang belum valid
+function appendErrorHead(box, message) {
+    const head = document.createElement('div');
+    head.className = 'error-head';
+    head.innerHTML = iconSvg('exclamation-circle');
+
+    const label = document.createElement('span');
+    label.innerText = message;
+
+    head.appendChild(label);
+    box.appendChild(head);
+}
 
 // Nilai contoh tiap field, dipakai untuk pratinjau barcode
 const SAMPLES = {
@@ -194,8 +246,8 @@ function editSupplier(id) {
     form.delimiter.value = supplier.delimiter;
     form.barcode_format.value = supplier.barcode_format;
 
-    document.getElementById('formTitle').innerText = 'Ubah Supplier';
-    document.getElementById('btnSubmit').innerText = 'Simpan Perubahan';
+    setFormTitle('Ubah Supplier', 'pencil-square');
+    setButtonLabel(document.getElementById('btnSubmit'), 'Simpan Perubahan', 'check');
     document.getElementById('btnCancel').hidden = false;
     hideErrors();
     updateFormatPreview();
@@ -209,8 +261,8 @@ function resetForm() {
     editingId = null;
     form.reset();
     form.delimiter.value = '-';
-    document.getElementById('formTitle').innerText = 'Tambah Supplier';
-    document.getElementById('btnSubmit').innerText = 'Simpan Supplier';
+    setFormTitle('Tambah Supplier', 'plus');
+    setButtonLabel(document.getElementById('btnSubmit'), 'Simpan Supplier', 'check');
     document.getElementById('btnCancel').hidden = true;
     hideErrors();
     updateFormatPreview();
@@ -247,6 +299,7 @@ async function deleteSupplier(id) {
 function showErrors(errors) {
     const box = document.getElementById('formErrors');
     box.innerHTML = '';
+    appendErrorHead(box, 'Periksa isian berikut');
 
     const list = document.createElement('ul');
 
@@ -376,7 +429,7 @@ function renderTable() {
         const arrivals = document.createElement('td');
         const badge = document.createElement('span');
         badge.className = 'count-badge';
-        badge.innerText = supplier.arrivals_count + ' PO';
+        badge.innerHTML = iconSvg('document-text') + ' ' + supplier.arrivals_count + ' PO';
         arrivals.appendChild(badge);
         row.appendChild(arrivals);
 
@@ -386,13 +439,13 @@ function renderTable() {
         const editButton = document.createElement('button');
         editButton.type = 'button';
         editButton.className = 'btn-edit';
-        editButton.innerText = 'Ubah';
+        editButton.innerHTML = iconSvg('pencil-square') + ' Ubah';
         editButton.onclick = () => editSupplier(supplier.id);
 
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         deleteButton.className = 'btn-delete';
-        deleteButton.innerText = 'Hapus';
+        deleteButton.innerHTML = iconSvg('trash') + ' Hapus';
         deleteButton.onclick = () => deleteSupplier(supplier.id);
 
         actions.appendChild(editButton);

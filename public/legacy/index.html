@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Tag Scanner</title>
+    <!-- CSS UI Sederhana -->
+    <style>
+        body { font-family: Arial, sans-serif; padding: 15px; margin: 0; background-color: #f4f6f9; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; margin-top: 0; }
+        video { width: 100%; border-radius: 8px; background: #000; display: none; margin-bottom: 10px; }
+        .btn-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-scan { background-color: #007bff; color: white; }
+        .btn-export { background-color: #28a745; color: white; }
+        .btn-clear { background-color: #dc3545; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .weight-col { font-weight: bold; color: #d9534f; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>QR Tag Scanner Wire Rod</h2>
+    
+    <video id="preview"></video>
+
+    <div class="btn-group">
+        <button class="btn-scan" onclick="toggleScanner()">Mulai Scan</button>
+        <button class="btn-export" onclick="exportToExcel()">Export Excel</button>
+        <button class="btn-clear" onclick="clearData()">Clear</button>
+    </div>
+
+    <h3>Data Scanned (<span id="count">0</span>)</h3>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Heat No</th>
+                <th>Coil No</th>
+                <th>Weight (MT)</th>
+                <th>Grade</th>
+                <th>Size</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- Library Scanner & Excel -->
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+let scannedList = JSON.parse(localStorage.getItem('qr_scanned_data') || '[]');
+let codeReader = null;
+let isScanning = false;
+
+// Tampilkan data tersimpan saat pertama load
+renderTable();
+
+function toggleScanner() {
+    if (isScanning) {
+        stopScanner();
+    } else {
+        startScanner();
+    }
+}
+
+function startScanner() {
+    const videoElem = document.getElementById('preview');
+    videoElem.style.display = 'block';
+    
+    codeReader = new ZXing.BrowserMultiFormatReader();
+    codeReader.decodeFromVideoDevice(null, 'preview', (result, err) => {
+        if (result) {
+            // Bunyi feedback beep singkat
+            let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let osc = audioCtx.createOscillator();
+            osc.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+
+            parseAndSave(result.text);
+            stopScanner();
+        }
+    }).catch(err => console.error(err));
+    
+    isScanning = true;
+    document.querySelector('.btn-scan').innerText = "Stop Scan";
+}
+
+function stopScanner() {
+    if (codeReader) {
+        codeReader.reset();
+    }
+    document.getElementById('preview').style.display = 'none';
+    isScanning = false;
+    document.querySelector('.btn-scan').innerText = "Mulai Scan";
+}
+
+// Parsing string QR dan Simpan ke JSON/LocalStorage
+function parseAndSave(qrText) {
+    // Delimiter otomatis menggunakan strip (-)
+    const parts = qrText.split('-');
+
+    if (parts.length < 7) {
+        alert("Format QR Code tidak valid atau kurang lengkap!");
+        return;
+    }
+
+    const itemData = {
+        manufacturer: parts[0],
+        grade: parts[1],
+        heatNo: parts[2],
+        coilNo: parts[3],
+        weight: parseFloat(parts[4]), // Mengambil angka berat (contoh: 2.369)
+        size: parseFloat(parts[5]),
+        date: parts[6],
+        scannedAt: new Date().toLocaleString('id-ID')
+    };
+
+    scannedList.push(itemData);
+    localStorage.setItem('qr_scanned_data', JSON.stringify(scannedList));
+    renderTable();
+}
+
+function renderTable() {
+    const tbody = document.querySelector('#dataTable tbody');
+    tbody.innerHTML = '';
+    
+    scannedList.forEach((item, index) => {
+        const row = `<tr>
+            <td>${index + 1}</td>
+            <td>${item.heatNo}</td>
+            <td>${item.coilNo}</td>
+            <td class="weight-col">${item.weight}</td>
+            <td>${item.grade}</td>
+            <td>${item.size} mm</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+
+    document.getElementById('count').innerText = scannedList.length;
+}
+
+function exportToExcel() {
+    if (scannedList.length === 0) {
+        alert("Belum ada data untuk diexport!");
+        return;
+    }
+
+    // Format data untuk Excel
+    const dataForExcel = scannedList.map((item, index) => ({
+        "No": index + 1,
+        "Manufacturer": item.manufacturer,
+        "Grade": item.grade,
+        "Heat No": item.heatNo,
+        "Coil No": item.coilNo,
+        "Weight (MT)": item.weight,
+        "Size (mm)": item.size,
+        "Date": item.date,
+        "Waktu Scan": item.scannedAt
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataForExcel);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Scan");
+
+    // Download file .xlsx
+    XLSX.writeFile(workbook, `Scan_Data_WireRod_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function clearData() {
+    if (confirm("Apakah Anda yakin ingin menghapus semua data?")) {
+        scannedList = [];
+        localStorage.removeItem('qr_scanned_data');
+        renderTable();
+    }
+}
+</script>
+
+</body>
+</html>

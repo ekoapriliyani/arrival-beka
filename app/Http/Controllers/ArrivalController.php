@@ -55,11 +55,18 @@ class ArrivalController extends Controller
             'manufacturer' => ['required', 'string', 'max:100'],
             'grade' => ['required', 'string', 'max:50'],
             'heat_no' => ['required', 'string', 'max:100'],
-            'coil_no' => ['required', 'string', 'max:100'],
+            'coil_no' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('arrival_details', 'coil_no')->where('arrival_header_id', $arrival->id),
+            ],
             'weight' => ['required', 'numeric', 'min:0'],
             'size' => ['required', 'numeric', 'min:0'],
             'qr_date' => ['nullable', 'date'],
             'source' => ['nullable', 'string', Rule::in(ArrivalDetail::SOURCES)],
+        ], [
+            'coil_no.unique' => 'Data duplikat: Coil No ini sudah pernah discan pada PO ini.',
         ]);
 
         $detail = $arrival->details()->create([

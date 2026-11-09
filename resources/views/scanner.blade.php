@@ -572,6 +572,23 @@ function renderHistory() {
 
 /* ================= Scan ================= */
 
+// Cek duplikat coil pada PO aktif (data tersimpan maupun antrean lokal)
+function isDuplicateCoil(coilNo) {
+    const coil = String(coilNo || '').trim();
+
+    if (!coil || !activeHeader) {
+        return false;
+    }
+
+    const inList = scannedList.some(item => String(item.coil_no || '').trim() === coil);
+    const inPending = pendingScans.some(item =>
+        item.headerId === activeHeader.id
+        && String((item.payload && item.payload.coil_no) || '').trim() === coil
+    );
+
+    return inList || inPending;
+}
+
 // Parsing string QR dan simpan ke database
 async function parseAndSave(qrText) {
     if (!activeHeader) {
@@ -593,7 +610,7 @@ async function parseAndSave(qrText) {
     if (parts.length < fields.length) {
         alert('Format QR Code tidak valid: diharapkan ' + fields.length
             + ' bagian dipisah "' + supplier.delimiter + '" untuk supplier ' + supplier.name
-            + ', yang terbaca ' + parts.length + ' bagian.');
+            + ', yang terbaca ' + parts.length + ' bagian.\n\nTeks terbaca: ' + String(qrText).slice(0, 200));
         return;
     }
 
@@ -615,9 +632,19 @@ async function parseAndSave(qrText) {
         payload.qr_date = null;
     }
 
+    if (isDuplicateCoil(payload.coil_no)) {
+        alert('Data duplikat: Coil No "' + payload.coil_no + '" sudah ada pada PO ini.');
+        return;
+    }
+
     const result = await postDetail(payload);
 
     if (!result.ok) {
+        if (isDuplicateMessage(result.message)) {
+            alert('Data duplikat: Coil No "' + payload.coil_no + '" sudah ada pada PO ini.');
+            return;
+        }
+
         queuePending(payload);
         return;
     }
@@ -635,6 +662,12 @@ function isDateOnly(value) {
     }
 
     return !isNaN(Date.parse(value));
+}
+
+function isDuplicateMessage(message) {
+    const text = String(message || '').toLowerCase();
+
+    return text.includes('duplikat') || text.includes('sudah ada') || text.includes('sudah pernah') || text.includes('unique');
 }
 
 // Tanggal hari ini (timezone lokal) dalam format YYYY-MM-DD
@@ -744,11 +777,18 @@ async function saveManualEntry() {
         source: 'manual'
     };
 
+    if (isDuplicateCoil(payload.coil_no)) {
+        showManualErrors({ coil_no: ['Data duplikat: Coil No "' + payload.coil_no + '" sudah ada pada PO ini.'] });
+        return;
+    }
+
     const result = await postDetail(payload);
 
     if (!result.ok) {
         // Isian tetap tersimpan di form agar bisa diperbaiki
-        showManualErrors({ message: ['Gagal menyimpan data: ' + result.message] });
+        showManualErrors({ message: [isDuplicateMessage(result.message)
+            ? 'Data duplikat: Coil No "' + payload.coil_no + '" sudah ada pada PO ini.'
+            : 'Gagal menyimpan data: ' + result.message] });
         return;
     }
 
@@ -790,6 +830,11 @@ async function postDetail(payload) {
 }
 
 function queuePending(payload) {
+    if (isDuplicateCoil(payload.coil_no)) {
+        alert('Data duplikat: Coil No "' + payload.coil_no + '" sudah ada pada PO ini.');
+        return;
+    }
+
     pendingScans.push({ headerId: activeHeader.id, payload: payload });
     savePendingScans();
     alert('Scan tidak tersimpan ke server, data disimpan sementara dan akan dikirim ulang otomatis.');
@@ -810,6 +855,13 @@ async function flushPending() {
         const result = await postDetail(pendingScans[0].payload);
 
         if (!result.ok) {
+            // Duplikat (mis. tersimpan di perangkat lain) dibuang dari antrean
+            if (isDuplicateMessage(result.message)) {
+                pendingScans.shift();
+                savePendingScans();
+                continue;
+            }
+
             break;
         }
 

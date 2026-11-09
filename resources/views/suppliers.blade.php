@@ -17,7 +17,8 @@
         .btn-cancel { background-color: #6c757d; color: white; }
         .btn-edit { background-color: #fd7e14; color: white; padding: 6px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
         .btn-delete { background-color: #dc3545; color: white; padding: 6px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+        table { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 13px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; vertical-align: top; }
         th { background-color: #f2f2f2; }
         label { display: block; font-size: 13px; font-weight: bold; color: #333; margin-bottom: 10px; }
@@ -92,19 +93,21 @@
     </section>
 
     <h3 class="ico-title" style="margin-top: 22px;"><x-icon name="clipboard-document-list" /> <span>Daftar Supplier (<span id="count">0</span>)</span></h3>
-    <table id="supplierTable">
-        <thead>
-            <tr>
-                <th><span class="lbl"><x-icon name="building-storefront" /> Nama</span></th>
-                <th><span class="lbl"><x-icon name="tag" /> Kode</span></th>
-                <th><span class="lbl"><x-icon name="code-bracket" /> Delimiter</span></th>
-                <th><span class="lbl"><x-icon name="qr-code" /> Format Barcode</span></th>
-                <th><span class="lbl"><x-icon name="clipboard-document-list" /> Arrival</span></th>
-                <th><span class="lbl"><x-icon name="wrench" /> Aksi</span></th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="table-scroll">
+        <table id="supplierTable">
+            <thead>
+                <tr>
+                    <th><span class="lbl"><x-icon name="building-storefront" /> Nama</span></th>
+                    <th><span class="lbl"><x-icon name="tag" /> Kode</span></th>
+                    <th><span class="lbl"><x-icon name="code-bracket" /> Delimiter</span></th>
+                    <th><span class="lbl"><x-icon name="qr-code" /> Format Barcode</span></th>
+                    <th><span class="lbl"><x-icon name="clipboard-document-list" /> Arrival</span></th>
+                    <th><span class="lbl"><x-icon name="wrench" /> Aksi</span></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
     <p id="emptyState" class="empty" hidden><x-icon name="inbox" /> Belum ada supplier. Tambahkan lewat form di atas.</p>
 </div>
 

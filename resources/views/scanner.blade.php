@@ -32,8 +32,9 @@
         .modal-actions button { flex: 1; }
         .btn-cancel { background-color: #6c757d; color: white; }
         .source-manual { color: #6f42c1; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 10px; border: 1px solid #ddd; border-radius: 6px; background: #fff; }
+        table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; white-space: nowrap; }
         th { background-color: #f2f2f2; }
         .weight-col { font-weight: bold; color: #d9534f; }
         label { display: block; font-size: 13px; font-weight: bold; color: #333; margin-bottom: 10px; }
@@ -142,20 +143,22 @@
     </div>
 
     <h3 class="ico-title"><x-icon name="table-cells" /> <span>Data Scanned (<span id="count">0</span>)</span></h3>
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th><span class="lbl"><x-icon name="hashtag" /> No</span></th>
-                <th><span class="lbl"><x-icon name="fire" /> Heat No</span></th>
-                <th><span class="lbl"><x-icon name="circle-stack" /> Coil No</span></th>
-                <th><span class="lbl"><x-icon name="scale" /> Weight (MT)</span></th>
-                <th><span class="lbl"><x-icon name="academic-cap" /> Grade</span></th>
-                <th><span class="lbl"><x-icon name="squares-2x2" /> Size</span></th>
-                <th><span class="lbl"><x-icon name="list-bullet" /> Sumber</span></th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="table-scroll">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th><span class="lbl"><x-icon name="hashtag" /> No</span></th>
+                    <th><span class="lbl"><x-icon name="fire" /> Heat No</span></th>
+                    <th><span class="lbl"><x-icon name="circle-stack" /> Coil No</span></th>
+                    <th><span class="lbl"><x-icon name="scale" /> Weight (MT)</span></th>
+                    <th><span class="lbl"><x-icon name="academic-cap" /> Grade</span></th>
+                    <th><span class="lbl"><x-icon name="squares-2x2" /> Size</span></th>
+                    <th><span class="lbl"><x-icon name="list-bullet" /> Sumber</span></th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
     <h3 class="ico-title" style="margin-top: 20px;"><x-icon name="clock" /> Riwayat PO</h3>
     <ul id="poHistory"></ul>
